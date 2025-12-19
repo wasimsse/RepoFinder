@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model RepoCandidate {
+  id             String   @id @default(cuid())
+  repoUrl        String   @unique
+  fullName       String
+  score          Int
+  stars          Int
+  forks          Int?
+  openIssues     Int?     // Number of open issues
+  openPullRequests Int?   // Number of open PRs
+  totalIssues    Int?     // Total issues (open + closed)
+  totalPullRequests Int?  // Total PRs (open + closed)
+  contributors   Int?     // Number of contributors
+  language       String?
+  description    String?
+  pushedAt       DateTime
+  clonedAt       DateTime? // When repo was cloned
+  clonePath      String?   // Local path if cloned
+  evidenceSummary String // JSON string
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([score])
+  @@index([stars])
+  @@index([pushedAt])
+  @@index([forks])
+  @@index([openIssues])
+}
+
+model ScanJob {
+  id              String   @id @default(cuid())
+  status          String   // idle, running, completed, failed, rate_limited, canceled
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  progress        Int      @default(0)
+  message         String?
+  cancelRequested Boolean  @default(false)
+  params          String? // JSON string
+  rateLimitResetAt DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+}
+
