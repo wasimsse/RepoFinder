@@ -27,8 +27,9 @@ export async function GET(request: NextRequest) {
       where.pushedAt = { gte: new Date(pushedAfter) }
     }
 
-    // Note: Language filtering would require storing language in the DB
-    // For now, we skip it in the query
+    if (language) {
+      where.language = { contains: language, mode: 'insensitive' }
+    }
 
     const skip = (page - 1) * limit
 

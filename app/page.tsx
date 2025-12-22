@@ -651,13 +651,44 @@ export default function Home() {
               />
             </div>
           </div>
-          <div>
+          <div className="flex gap-3">
             <button
               onClick={handleExportCSV}
               className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
             >
               <span>📥</span>
               <span>Export CSV</span>
+            </button>
+            <button
+              onClick={async () => {
+                const confirmed = confirm(
+                  'This will fetch metadata (forks, issues, PRs, contributors, language) for repositories that are missing it.\n\n' +
+                  '⚠️ This uses GitHub API calls (6 per repo) and may take several minutes.\n' +
+                  'If you hit rate limits, click the button again to continue.\n\n' +
+                  'Continue?'
+                )
+                if (confirmed) {
+                  try {
+                    setLoading(true)
+                    const res = await fetch('/api/results/backfill-metadata', { method: 'POST' })
+                    const data = await res.json()
+                    const message = data.remaining > 0
+                      ? `✅ ${data.message}\n\nProcessed: ${data.processed}/${data.total}\nRemaining: ${data.remaining}\n\nClick "Backfill Metadata" again to continue.`
+                      : `✅ ${data.message}\n\nProcessed: ${data.processed}/${data.total} repositories.`
+                    alert(message)
+                    fetchResults() // Refresh results
+                  } catch (error) {
+                    alert('❌ Error backfilling metadata: ' + (error instanceof Error ? error.message : 'Unknown error'))
+                  } finally {
+                    setLoading(false)
+                  }
+                }
+              }}
+              disabled={loading}
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-700 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span>🔄</span>
+              <span>Backfill Metadata</span>
             </button>
           </div>
         </div>

@@ -261,9 +261,9 @@ export class Scanner {
             const [owner, repo] = candidate.fullName.split('/')
             if (!owner || !repo) continue
             
-            // Fetch issues and PRs (use minimal API calls)
-            // Note: forks, language, description already come from search results
-            const [openIssues, totalIssues, openPRs, totalPRs, contributors] = await Promise.all([
+            // Fetch full repo details and issues/PRs/contributors
+            const [repoDetails, openIssues, totalIssues, openPRs, totalPRs, contributors] = await Promise.all([
+              this.github.getRepoDetails(owner, repo),
               this.github.getRepoIssues(owner, repo, 'open'),
               this.github.getRepoIssues(owner, repo, 'all'),
               this.github.getRepoPullRequests(owner, repo, 'open'),
@@ -271,6 +271,10 @@ export class Scanner {
               this.github.getContributorsCount(owner, repo),
             ])
             
+            // Update all metadata fields
+            candidate.forks = repoDetails.forks_count
+            candidate.language = repoDetails.language || undefined
+            candidate.description = repoDetails.description || undefined
             candidate.openIssues = openIssues
             candidate.totalIssues = totalIssues
             candidate.openPullRequests = openPRs
